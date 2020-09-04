@@ -56,7 +56,7 @@
 		la $a0, message
 		syscall
 
-		# Print or show the age
+		# Print or show the sum
 		li $v0, 1
 		move $a0, $t0
 		syscall
