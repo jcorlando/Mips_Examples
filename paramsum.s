@@ -1,6 +1,7 @@
 .data
     prompt1: .asciiz  "Enter the number of integers you will be entering : "
-    prompt2: .asciiz  "Enter an integer : "
+    prompt2: .asciiz  "\nEnter an integer : "
+    prompt3: .asciiz  "\nThe sum of the numbers is : "
 .text
 .globl main
 	main:
@@ -19,16 +20,17 @@
         # Allocate enough space for the stack
         sll $t0, $t0, 2     # This is to multiply t0 by 4 to get memory allocation size
                             # t0 now has the amount of memory needed for stack
-        move $t1, $t0		# $t1 = $t0; both t1 and t0 have stack pointer
+        move $t3, $t0		# $t3 = $t0
         
         # Allocate stack space
         sub	$sp, $sp, $t0		# $sp = $sp - $t0
+        move $t1, $sp		    # $t1 = $sp; t1 also gets the stack pointer address
 
         j	while               # jump to while
         
 
         while:      # Beginning while loop
-            ble	$t0, $0, exit	    # if $t0 <= $0 then exit
+            ble	$t0, $0, sum	    # if $t0 <= $0 then go to sum
 
             # Prompt the user to enter an integer number
 		    li $v0, 4
@@ -43,21 +45,34 @@
     		# Store the results in t2
 	    	move $t2, $v0
 
-            sw	$t2, 0($sp)	  # Store variable on stack
-            add	$sp, $sp, 4		# $sp = $sp + 4
+            sw	$t2, ($t1)	        # Store number on stack
+            add	$t1, $t1, 4		    # $t1 = $t1 + 4; increment stack address by 1 word
             
-            sub	$t0, $t0, 4			# $t0 = $t0 - 4
+            
+            sub	$t0, $t0, 4			# $t0 = $t0 - 4: decrement
             
             j while				    # jump to while
-        
-        exit:
+
+        sum:
+            ble	$t3, $0, end        # if $t3 <= $0 then go to end
+            lw $s1, ($sp)		    # load int into register
+            add	$s0, $s0, $s1		# $s0 = $s0 + $s1; s0 is running total
+            sub	$t3, $t3, 4		    # $t3 = $t3 - 4; stack counter
+            add	$sp, $sp, 4		    # $sp = $sp + 4; popping stack
+            j sum
+        end:
 
 
+        # Print out prompt3
+		li $v0, 4
+		la $a0, prompt3
+		syscall
+
+		# Print or show the sum
+		li $v0, 1
+		move $a0, $s0
+		syscall
 
 		# End of program
 		li $v0, 10  
 		syscall     # End of program
-
-
-
-
